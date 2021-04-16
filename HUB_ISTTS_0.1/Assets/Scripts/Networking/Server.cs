@@ -54,6 +54,7 @@ public class Server : MonoBehaviour
         int dataSize;
         byte error;
         NetworkEventType recData = NetworkTransport.Receive(out recHostId, out connectionId, out channelId, recBuffer, bufferSize, out dataSize, out error);
+
         switch (recData)
         {
             //case NetworkEventType.Nothing: break;
@@ -79,7 +80,7 @@ public class Server : MonoBehaviour
                             break;
 
                         default: //invalid key case
-                            Debug.Log("INVALID MESSAGE : ");
+                            Debug.Log("INVALID SERVER MESSAGE : ");
                             break;
                     }
                 }
@@ -88,6 +89,7 @@ public class Server : MonoBehaviour
             case NetworkEventType.DisconnectEvent:
                 {
                     Debug.Log("Player " + connectionId + " has disconnected");
+                    OnDisconnection(connectionId);
                 }
                 break;
 
@@ -117,6 +119,15 @@ public class Server : MonoBehaviour
         msg = msg.Trim('|');
 
         Send(msg,reliableChannel,cnnId);
+    }
+
+    private void OnDisconnection(int cnnId)
+    {
+        //Remove this player from client list
+        clients.Remove(clients.Find(x => x.connectionID == cnnId));
+
+        //Tell everyone that somebody else has disconnected
+        Send("DC|" + cnnId, reliableChannel, clients);
     }
 
     private void OnNameIs(int cnnId, string playerName)

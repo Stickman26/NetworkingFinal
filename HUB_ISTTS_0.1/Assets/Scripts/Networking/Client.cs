@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -33,12 +34,12 @@ public class Client : MonoBehaviour
     private string playerName;
 
     public GameObject playerPrefab;
-    public List<Player> players = new List<Player>();
+    public Dictionary<int, Player> players = new Dictionary<int, Player>();
 
     public void Connect()
     {
 
-        string pName = "";
+        string pName = GameObject.Find("UsernameField").GetComponent<TMP_InputField>().text;
         if (pName == "")
         {
             Debug.Log("You must enter name!");
@@ -56,7 +57,9 @@ public class Client : MonoBehaviour
         HostTopology topo = new HostTopology(cc, MAX_CONNECTIONS);
 
         hostId = NetworkTransport.AddHost(topo, 0);
-        connectionId = NetworkTransport.Connect(hostId, "LOCALHOST", port, 0, out error);
+        string IP = GameObject.Find("ServerField").GetComponent<TMP_InputField>().text;
+
+        connectionId = NetworkTransport.Connect(hostId, IP, port, 0, out error);
 
         connectionTime = Time.time;
         isConnected = true;
@@ -95,10 +98,11 @@ public class Client : MonoBehaviour
                             break;
 
                         case "DC": //disconnection
+                            PlayerDisconnected(int.Parse(splitData[1]));
                             break;
 
                         default: //invalid key case
-                            Debug.Log("INVALID MESSAGE : ");
+                            Debug.Log("INVALID CLIENT MESSAGE : " + msg);
                             break;
                     }
                 }
@@ -129,14 +133,14 @@ public class Client : MonoBehaviour
         }
     }
 
-    private void SpawnPlayer(string name, int cnnId)
+    private void SpawnPlayer(string playerName, int cnnId)
     {
         GameObject go = Instantiate(playerPrefab) as GameObject;
 
         //Is this ours?
        if (cnnId == ourClientId)
         {
-            //Remove menu
+            GameObject.Find("ClientConnectionPanel").SetActive(false);
             isStarted = true;
         }
 
@@ -145,7 +149,13 @@ public class Client : MonoBehaviour
         p.playerName = playerName;
         p.connectionID = cnnId;
         p.avatar.GetComponentInChildren<TextMesh>().text = playerName;
-        players.Add(p);
+        players.Add(cnnId, p);
+    }
+
+    private void PlayerDisconnected(int cnnId)
+    {
+        Destroy(players[cnnId].avatar);
+        players.Remove(cnnId);
     }
 
     private void Send(string message, int channelID)
