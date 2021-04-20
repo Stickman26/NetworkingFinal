@@ -140,6 +140,10 @@ public class Client : MonoBehaviour
         //Is this ours?
        if (cnnId == ourClientId)
         {
+            GameObject cam = GameObject.Find("Main Camera");
+            cam.transform.SetParent(go.transform.GetChild(1));
+            cam.transform.position = go.transform.position;
+            cam.transform.rotation = go.transform.GetChild(1).rotation;
             GameObject.Find("ClientConnectionPanel").SetActive(false);
             isStarted = true;
         }
