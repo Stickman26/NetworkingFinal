@@ -872,6 +872,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   addressHolder: {fileID: 30602420}
+  consoleOutput: {fileID: 2040018991}
 --- !u!1 &1061236009
 GameObject:
   m_ObjectHideFlags: 0
@@ -1205,7 +1206,7 @@ GameObject:
   - component: {fileID: 2040018994}
   - component: {fileID: 2040018993}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: ConsoleOutput
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

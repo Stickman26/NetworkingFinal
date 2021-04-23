@@ -11,6 +11,8 @@ public class ServerInterface : MonoBehaviour
     private string addressStart = "Network Address: ";
     [SerializeField]
     TMP_Text addressHolder;
+    [SerializeField]
+    TMP_Text consoleOutput;
 
     private void Start()
     {
@@ -30,5 +32,11 @@ public class ServerInterface : MonoBehaviour
         }
 
         throw new System.Exception("No network adapters with an IPv4 address in the system!");
+    }
+
+    public void AddToConsole(string output)
+    {
+        consoleOutput.text += output;
+        consoleOutput.text += "\n";
     }
 }

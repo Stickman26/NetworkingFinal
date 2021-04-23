@@ -139,11 +139,21 @@ public class Client : MonoBehaviour
 
         //Is this ours?
        if (cnnId == ourClientId)
-        {
+       { 
+            //Hook up camera
             GameObject cam = GameObject.Find("Main Camera");
             cam.transform.SetParent(go.transform.GetChild(1));
-            cam.transform.position = go.transform.position;
+            cam.transform.position = go.transform.GetChild(1).position;
             cam.transform.rotation = go.transform.GetChild(1).rotation;
+            //Set up look script
+            MouseLook ml = cam.GetComponent<MouseLook>();
+            ml.MouseState(true);
+            ml.playerBody = go.transform;
+
+            //Hook up movement
+            go.AddComponent<PlayerMovement>();
+
+            //Disable connection panel and start game
             GameObject.Find("ClientConnectionPanel").SetActive(false);
             isStarted = true;
         }

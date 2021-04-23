@@ -26,6 +26,8 @@ public class Server : MonoBehaviour
 
     private List<ServerClient> clients = new List<ServerClient>();
 
+    private ServerInterface serverConsole;
+
     private void Start()
     {
         NetworkTransport.Init();
@@ -39,6 +41,8 @@ public class Server : MonoBehaviour
         hostId = NetworkTransport.AddHost(topo, port, null);
 
         isStarted = true;
+
+        serverConsole = gameObject.GetComponent<ServerInterface>();
     }
 
     private void Update()
@@ -61,7 +65,8 @@ public class Server : MonoBehaviour
 
             case NetworkEventType.ConnectEvent:
                 {
-                    Debug.Log("Player " + connectionId + " has connected");
+                    //Debug.Log("Player " + connectionId + " has connected");
+                    serverConsole.AddToConsole("Player " + connectionId + " has connected");
                     OnConnection(connectionId);
                 }
                 break;
@@ -69,7 +74,8 @@ public class Server : MonoBehaviour
             case NetworkEventType.DataEvent:
                 {
                     string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                    Debug.Log("Receiving from " + connectionId + " : " + msg);
+                    //Debug.Log("Receiving from " + connectionId + " : " + msg);
+                    serverConsole.AddToConsole("Receiving from " + connectionId + " : " + msg);
 
                     string[] splitData = msg.Split('|');
 
@@ -80,7 +86,8 @@ public class Server : MonoBehaviour
                             break;
 
                         default: //invalid key case
-                            Debug.Log("INVALID SERVER MESSAGE : ");
+                            //Debug.Log("INVALID SERVER MESSAGE : ");
+                            serverConsole.AddToConsole("INVALID SERVER MESSAGE : ");
                             break;
                     }
                 }
@@ -88,7 +95,8 @@ public class Server : MonoBehaviour
 
             case NetworkEventType.DisconnectEvent:
                 {
-                    Debug.Log("Player " + connectionId + " has disconnected");
+                    //Debug.Log("Player " + connectionId + " has disconnected");
+                    serverConsole.AddToConsole("Player " + connectionId + " has disconnected");
                     OnDisconnection(connectionId);
                 }
                 break;
@@ -150,7 +158,8 @@ public class Server : MonoBehaviour
 
     private void Send(string message, int channelID, List<ServerClient> c)
     {
-        Debug.Log("Sending : " + message);
+        //Debug.Log("Sending : " + message);
+        serverConsole.AddToConsole("Sending : " + message);
 
         byte[] msg = Encoding.Unicode.GetBytes(message);
         foreach (ServerClient sc in c)
