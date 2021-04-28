@@ -20,10 +20,10 @@ public class Client : MonoBehaviour
 
     private int hostId;
 
-    private int reliableChannel;
+    public int reliableChannel;
     private int unreliableChannel;
 
-    private int ourClientId;
+    public int ourClientId;
     private int connectionId;
 
     private float connectionTime;
@@ -35,6 +35,13 @@ public class Client : MonoBehaviour
 
     public GameObject playerPrefab;
     public Dictionary<int, Player> players = new Dictionary<int, Player>();
+
+    //chat vars
+    public List<Message> messageList = new List<Message>();
+    public int maxMessages = 25;
+    public GameObject chatPanel;
+    public GameObject textObject;
+    public GameObject chatBox;
 
     public void Connect()
     {
@@ -68,7 +75,13 @@ public class Client : MonoBehaviour
     private void Update()
     {
         if (!isConnected)
+        {
             return;
+        }
+        else
+        {
+            chatBox.SetActive(true);
+        }
 
         int recHostId;
         int connectionId;
@@ -107,6 +120,10 @@ public class Client : MonoBehaviour
 
                         case "ROT":
                             RotationgDetected(int.Parse(splitData[1]), splitData);
+                            break;
+
+                        case "MESSAGE":
+                            recieveMessage(splitData[1], splitData[2]);
                             break;
 
                         default: //invalid key case
@@ -227,5 +244,41 @@ public class Client : MonoBehaviour
         byte[] msg = Encoding.Unicode.GetBytes(message);
 
         NetworkTransport.Send(hostId, connectionId, channelID, msg, message.Length * sizeof(char), out error);
+    }
+
+    public void sendMessage(string msg, int channelID)
+    {
+        msg = "MESSAGE|" + msg;
+        Send(msg, channelID);
+    }
+
+    public void recieveMessage(string sentID, string msg)
+    {
+        if(messageList.Count >= maxMessages)
+        {
+            Destroy(messageList[0].textObject.gameObject);
+            messageList.Remove(messageList[0]);
+        }
+
+        if(chatBox.activeSelf == false)
+        {
+            chatBox.SetActive(true);
+        }
+
+        Message msgToPrint = new Message();
+        msgToPrint.text = sentID + ": " + msg;
+
+        GameObject newText = Instantiate(textObject, chatPanel.transform);
+
+        msgToPrint.textObject = newText.GetComponent<TextMeshProUGUI>();
+        msgToPrint.textObject.text = msgToPrint.text;
+
+        messageList.Add(msgToPrint);
+    }
+
+    public class Message
+    {
+        public string text;
+        public TextMeshProUGUI textObject;
     }
 }

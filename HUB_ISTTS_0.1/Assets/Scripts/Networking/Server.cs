@@ -48,7 +48,9 @@ public class Server : MonoBehaviour
     private void Update()
     {
         if (!isStarted)
+        {
             return;
+        }
 
         int recHostId;
         int connectionId;
@@ -87,6 +89,10 @@ public class Server : MonoBehaviour
 
                         case "ROT":
                             OnRotationChange(connectionId, splitData);
+                            break;
+
+                        case "MESSAGE":
+                            Send(msg, reliableChannel);
                             break;
 
                         default: //invalid key case
@@ -194,6 +200,23 @@ public class Server : MonoBehaviour
         {
             NetworkTransport.Send(hostId, sc.connectionID, channelID, msg, message.Length * sizeof(char), out error);
             serverConsole.AddToConsole(sc.playerName);
+        }
+    }   
+    
+    //Send to all players
+    private void Send(string message, int channelID)
+    {
+        //Debug.Log("Sending : " + message);
+        serverConsole.AddToConsole("Sending : " + message);
+
+        //message = "MESSAGE|" + message;
+
+        serverConsole.AddToConsole("to all players");
+
+        byte[] msg = Encoding.Unicode.GetBytes(message);
+        foreach (ServerClient sc in clients)
+        {
+            NetworkTransport.Send(hostId, sc.connectionID, channelID, msg, message.Length * sizeof(char), out error);
         }
     }
 }
