@@ -87,7 +87,7 @@ public class Client : MonoBehaviour
 
                     string[] splitData = msg.Split('|');
 
-                    switch(splitData[0])
+                    switch (splitData[0])
                     {
                         case "ASKNAME": //get username
                             OnAskName(splitData);
@@ -99,6 +99,14 @@ public class Client : MonoBehaviour
 
                         case "DC": //disconnection
                             PlayerDisconnected(int.Parse(splitData[1]));
+                            break;
+
+                        case "MOVE":
+                            //MovementDetected(int.Parse(splitData[1]), splitData);
+                            break;
+
+                        case "ROT":
+                            RotationgDetected(int.Parse(splitData[1]), splitData);
                             break;
 
                         default: //invalid key case
@@ -138,8 +146,8 @@ public class Client : MonoBehaviour
         GameObject go = Instantiate(playerPrefab) as GameObject;
 
         //Is this ours?
-       if (cnnId == ourClientId)
-       { 
+        if (cnnId == ourClientId)
+        {
             //Hook up camera
             GameObject cam = GameObject.Find("Main Camera");
             cam.transform.SetParent(go.transform.GetChild(1));
@@ -149,6 +157,10 @@ public class Client : MonoBehaviour
             MouseLook ml = cam.GetComponent<MouseLook>();
             ml.MouseState(true);
             ml.playerBody = go.transform;
+            //attach pointer
+            Transform pointer = go.transform.GetChild(1).GetChild(0);
+            Debug.Log(pointer.name);
+            pointer.SetParent(cam.transform);
 
             //Hook up movement
             go.AddComponent<PlayerMovement>();
@@ -156,6 +168,13 @@ public class Client : MonoBehaviour
             //Disable connection panel and start game
             GameObject.Find("ClientConnectionPanel").SetActive(false);
             isStarted = true;
+        }
+        else
+        {
+            //add networked player adapter
+            NetworkedPlayerAdapter ap = go.AddComponent<NetworkedPlayerAdapter>();
+            ap.body = go.transform;
+            ap.lookComponent = go.transform.GetChild(1);
         }
 
         Player p = new Player();
@@ -170,6 +189,35 @@ public class Client : MonoBehaviour
     {
         Destroy(players[cnnId].avatar);
         players.Remove(cnnId);
+    }
+
+    private void MovementDetected(int cnnId, string[] data)
+    {
+        if(players[cnnId] != null)
+        {
+            NetworkedPlayerAdapter character = players[cnnId].avatar.GetComponent<NetworkedPlayerAdapter>();
+            //character.Move();
+        }
+    }
+
+    private void RotationgDetected(int cnnId, string[] data)
+    {
+        if (players[cnnId] != null)
+        {
+            NetworkedPlayerAdapter character = players[cnnId].avatar.GetComponent<NetworkedPlayerAdapter>();
+            float xRot = int.Parse(data[2]);
+            float yRot = int.Parse(data[3]);
+            character.Look(xRot, yRot);
+        }
+    }
+
+    public void SendRotation(float xRot, float yRot)
+    {
+        string msg = "ROT|";
+        msg += ((int)xRot).ToString() + "|";
+        msg += ((int)yRot).ToString();
+
+        Send(msg, unreliableChannel);
     }
 
     private void Send(string message, int channelID)

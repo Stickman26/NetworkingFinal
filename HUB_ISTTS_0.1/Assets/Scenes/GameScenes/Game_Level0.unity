@@ -323,7 +323,7 @@ GameObject:
   - component: {fileID: 221115864}
   - component: {fileID: 221115863}
   - component: {fileID: 221115862}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Platform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1910,7 +1910,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1398463392}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Puzzle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2959,7 +2959,7 @@ GameObject:
   - component: {fileID: 2066218257}
   - component: {fileID: 2066218256}
   - component: {fileID: 2066218255}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}

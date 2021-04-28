@@ -5,17 +5,14 @@ using UnityEngine;
 public class MouseLook : MonoBehaviour
 {
 
-    public float mouseSensitivity = 150f;
+    public float mouseSensitivity = 600f;
 
     public Transform playerBody;
 
     private float xRot = 0f;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    private float sendDelay = 1f;
+    private float lastSent;
 
     public void MouseState(bool locked)
     {
@@ -41,9 +38,19 @@ public class MouseLook : MonoBehaviour
         xRot = Mathf.Clamp(xRot, -90f, 90f);
 
 
-        transform.localRotation = Quaternion.Euler(xRot, 0, 0);
+        transform.localRotation = Quaternion.Euler(xRot, 0f, 0f);
 
         if (playerBody != null)
             playerBody.Rotate(Vector3.up * mouseX);
+
+        if (playerBody != null && sendDelay <= lastSent)
+        {
+            lastSent = 0f;
+            GameObject.Find("Networking").GetComponent<Client>().SendRotation(xRot, playerBody.rotation.eulerAngles.y);
+        }
+        else
+            lastSent += Time.deltaTime;
     }
+
+    //Method for sending current rotation
 }

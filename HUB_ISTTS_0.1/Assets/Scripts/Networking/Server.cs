@@ -85,6 +85,10 @@ public class Server : MonoBehaviour
                             OnNameIs(connectionId, splitData[1]);
                             break;
 
+                        case "ROT":
+                            OnRotationChange(connectionId, splitData);
+                            break;
+
                         default: //invalid key case
                             //Debug.Log("INVALID SERVER MESSAGE : ");
                             serverConsole.AddToConsole("INVALID SERVER MESSAGE : ");
@@ -147,7 +151,18 @@ public class Server : MonoBehaviour
         Send("CNN|" + playerName + "|" + cnnId, reliableChannel, clients);
     }
 
+    private void OnRotationChange(int cnnID, string[] data)
+    {
+        string msg = "ROT|";
+        msg += cnnID.ToString() + "|";
+        msg += data[1] + "|";
+        msg += data[2];
+
+        Send(msg, unreliableChannel, clients, cnnID);
+    }
+
     //Send
+    //Send to sender
     private void Send(string message, int channelID, int cnnID)
     {
         List<ServerClient> c = new List<ServerClient>();
@@ -156,15 +171,29 @@ public class Server : MonoBehaviour
         Send(message, channelID, c);
     }
 
+    //Client list minus sender
+    private void Send(string message, int channelID, List<ServerClient> c, int cnnID)
+    {
+        List<ServerClient> recievers = new List<ServerClient>();
+        recievers.AddRange(clients);
+        recievers.Remove(recievers.Find(x => x.connectionID == cnnID));
+
+        Send(message, channelID, recievers);
+    }
+
+    //Send to list
     private void Send(string message, int channelID, List<ServerClient> c)
     {
         //Debug.Log("Sending : " + message);
-        serverConsole.AddToConsole("Sending : " + message);
+        serverConsole.AddToConsole("Sending : " + message);  
+
+        serverConsole.AddToConsole("to : ");
 
         byte[] msg = Encoding.Unicode.GetBytes(message);
         foreach (ServerClient sc in c)
         {
             NetworkTransport.Send(hostId, sc.connectionID, channelID, msg, message.Length * sizeof(char), out error);
+            serverConsole.AddToConsole(sc.playerName);
         }
     }
 }
