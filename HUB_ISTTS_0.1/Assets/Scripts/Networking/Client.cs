@@ -269,7 +269,7 @@ public class Client : MonoBehaviour
         msgToPrint.text = sentID + ": " + msg;
 
         GameObject newText = Instantiate(textObject);
-        newText.transform.SetParent(chatBox.transform, false);
+        newText.transform.SetParent(chatPanel.transform, false);
 
         msgToPrint.textObject = newText.GetComponent<TextMeshProUGUI>();
         msgToPrint.textObject.text = msgToPrint.text;
