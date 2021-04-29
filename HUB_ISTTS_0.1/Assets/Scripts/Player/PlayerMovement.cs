@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class PlayerMovement : MonoBehaviour
 
     //chat vars
     public GameObject chatBox;
+    public GameObject chatPanel;
     bool disableInput;
     bool inputFieldActive;
 
@@ -29,6 +31,7 @@ public class PlayerMovement : MonoBehaviour
         groundCheck = transform.GetChild(2);
         groundMask = LayerMask.GetMask("Ground");
         chatBox = GameObject.FindGameObjectWithTag("chatbox");
+        chatPanel = GameObject.Find("Scroll View");
     }
 
     private void Update()
@@ -37,6 +40,10 @@ public class PlayerMovement : MonoBehaviour
         if(chatBox == null)
         {
             chatBox = GameObject.FindGameObjectWithTag("chatbox");
+        }
+        if(chatPanel == null)
+        {
+            chatPanel = GameObject.Find("Scroll View");
         }
 
         if(disableInput == false)
@@ -68,13 +75,10 @@ public class PlayerMovement : MonoBehaviour
         //toggle chat input (disable game inputs)
         if (Input.GetKeyDown(KeyCode.T))
         {
-            if (disableInput)
-            {
-                disableInput = false;
-            }
-            else
+            if (!disableInput)
             {
                 disableInput = true;
+                chatPanel.GetComponent<ScrollRect>().scrollSensitivity = 1;
             }
 
             chatBox.GetComponent<TMP_InputField>().ActivateInputField();
@@ -85,25 +89,43 @@ public class PlayerMovement : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Return))
             {
-                GameObject sendMessage = GameObject.Find("Networking");
+                if(chatBox.GetComponent<TMP_InputField>().text != "")
+                {
+                    GameObject sendMessage = GameObject.Find("Networking");
 
-                string temp = sendMessage.GetComponent<Client>().ourClientId.ToString() + "|" + chatBox.GetComponent<TMP_InputField>().text;
+                    string temp = sendMessage.GetComponent<Client>().ourClientId.ToString() + "|" + chatBox.GetComponent<TMP_InputField>().text;
 
-                sendMessage.GetComponent<Client>().sendMessage(temp, sendMessage.GetComponent<Client>().reliableChannel);
+                    sendMessage.GetComponent<Client>().sendMessage(temp, sendMessage.GetComponent<Client>().reliableChannel);
+                    chatBox.GetComponent<TMP_InputField>().text = "";
+                    chatBox.GetComponent<TMP_InputField>().DeactivateInputField();
+                    hideChatBox();
+                }
+                else
+                {
+                    chatBox.GetComponent<TMP_InputField>().DeactivateInputField();
+                    hideChatBox();
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
                 chatBox.GetComponent<TMP_InputField>().text = "";
                 chatBox.GetComponent<TMP_InputField>().DeactivateInputField();
+                hideChatBox();
             }
         }
     }
 
     public void hideChatBox()
     {
+        chatPanel.GetComponent<ScrollRect>().scrollSensitivity = 0;
+        disableInput = false;
         StartCoroutine("hideChat");
     }
 
     IEnumerator hideChat()
     {
-        yield return new WaitForSeconds(5.0f);
+        yield return new WaitForSecondsRealtime(1.0f);
 
         chatBox.GetComponentInParent<GameObject>().SetActive(false);
     }
