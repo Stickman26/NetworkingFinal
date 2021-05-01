@@ -97,14 +97,10 @@ public class PlayerMovement : MonoBehaviour
 
                     sendMessage.GetComponent<Client>().sendMessage(temp, sendMessage.GetComponent<Client>().reliableChannel);
                     chatBox.GetComponent<TMP_InputField>().text = "";
-                    chatBox.GetComponent<TMP_InputField>().DeactivateInputField();
-                    hideChatBox();
                 }
-                else
-                {
-                    chatBox.GetComponent<TMP_InputField>().DeactivateInputField();
-                    hideChatBox();
-                }
+
+                chatBox.GetComponent<TMP_InputField>().DeactivateInputField();
+                hideChatBox();
             }
 
             if (Input.GetKeyDown(KeyCode.Escape))

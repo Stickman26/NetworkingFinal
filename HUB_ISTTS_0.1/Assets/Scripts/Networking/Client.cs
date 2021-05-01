@@ -240,6 +240,8 @@ public class Client : MonoBehaviour
             Vector3 vel = new Vector3(data.xVel, data.yVel, data.zVel);
 
             character.Move(pos, vel);
+
+            SendMovement(character.body.position, character.rb.velocity);
         }
     }
 
@@ -251,6 +253,8 @@ public class Client : MonoBehaviour
             float xRot = data.xRot;
             float yRot = data.yRot;
             character.Look(xRot, yRot);
+
+            SendRotation(character.lookComponent.rotation.x, character.lookComponent.rotation.y);
         }
     }
 
@@ -258,14 +262,14 @@ public class Client : MonoBehaviour
     {
         NetworkStructs.RotationData msg = new NetworkStructs.RotationData(ourClientId, xRot, yRot);
 
-        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), unreliableChannel);
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), reliableChannel);
     }
 
     public void SendMovement(Vector3 pos, Vector3 vel)
     {
         NetworkStructs.PositionVelocityData msg = new NetworkStructs.PositionVelocityData(ourClientId, pos, vel);
 
-        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), unreliableChannel);
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVE, NetworkStructs.getBytes(msg)), reliableChannel);
     }
 
     public void sendMessage(string msg, int channelID)
