@@ -102,6 +102,13 @@ public class Server : MonoBehaviour
                             }
                             break;
 
+                        case NetworkStructs.MessageTypes.MOVE:
+                            {
+                                NetworkStructs.PositionVelocityData data = NetworkStructs.fromBytes<NetworkStructs.PositionVelocityData>(packet);
+                                OnMovement(connectionId, data);
+                            }
+                            break;
+
                         case NetworkStructs.MessageTypes.MESSAGE:
                             Send(recBuffer, reliableChannel);
                             break;
@@ -180,6 +187,11 @@ public class Server : MonoBehaviour
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(data)), unreliableChannel, clients, cnnID);
     }
 
+    private void OnMovement(int cnnID, NetworkStructs.PositionVelocityData data)
+    {
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVE, NetworkStructs.getBytes(data)), unreliableChannel, clients, cnnID);
+    }
+
     //Send
     //Send to sender
     private void Send(byte[] msg, int channelID, int cnnID)
@@ -212,7 +224,7 @@ public class Server : MonoBehaviour
         foreach (ServerClient sc in c)
         {
             NetworkTransport.Send(hostId, sc.connectionID, channelID, msg, msg.Length, out error);
-            serverConsole.AddToConsole(sc.playerName);
+            //serverConsole.AddToConsole(sc.playerName);
         }
     }   
     
@@ -224,7 +236,7 @@ public class Server : MonoBehaviour
 
         //message = "MESSAGE|" + message;
 
-        serverConsole.AddToConsole("to all players");
+        //serverConsole.AddToConsole("to all players");
 
         //byte[] msg = Encoding.Unicode.GetBytes(message);
         foreach (ServerClient sc in clients)

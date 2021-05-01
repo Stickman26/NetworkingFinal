@@ -114,6 +114,8 @@ public class PlayerMovement : MonoBehaviour
                 hideChatBox();
             }
         }
+
+        GameObject.Find("Networking").GetComponent<Client>().SendMovement(gameObject.transform.position, velocity);
     }
 
     public void hideChatBox()
@@ -129,6 +131,4 @@ public class PlayerMovement : MonoBehaviour
 
         chatBox.GetComponentInParent<GameObject>().SetActive(false);
     }
-
-    //means of sending movement data, and velocity
 }

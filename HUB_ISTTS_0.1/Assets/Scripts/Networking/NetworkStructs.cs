@@ -89,17 +89,17 @@ public class NetworkStructs
         public float yVel;
         public float zVel;
 
-        public PositionVelocityData(int id, float x, float y, float z, float dx, float dy, float dz)
+        public PositionVelocityData(int id, Vector3 pos, Vector3 vel)
         {
             this.id = id;
 
-            xPos = x;
-            yPos = y;
-            zPos = z;
+            xPos = pos.x;
+            yPos = pos.y;
+            zPos = pos.z;
 
-            xVel = x;
-            yVel = y;
-            zVel = z;
+            xVel = vel.x;
+            yVel = vel.y;
+            zVel = vel.z;
         }
     }
 
@@ -152,7 +152,7 @@ public class NetworkStructs
     {
         T str = new T();
 
-        int size = Marshal.SizeOf(arr);
+        int size = Marshal.SizeOf(typeof(T));
         IntPtr ptr = Marshal.AllocHGlobal(size);
 
         Marshal.Copy(arr, 0, ptr, size);

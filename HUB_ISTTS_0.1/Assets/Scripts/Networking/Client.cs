@@ -125,7 +125,10 @@ public class Client : MonoBehaviour
                             break;
 
                         case NetworkStructs.MessageTypes.MOVE:
-                            //MovementDetected(int.Parse(splitData[1]), splitData);
+                            {
+
+                                //MovementDetected(int.Parse(splitData[1]), splitData);
+                            }
                             break;
 
                         case NetworkStructs.MessageTypes.ROT:
@@ -228,12 +231,15 @@ public class Client : MonoBehaviour
         players.Remove(cnnId);
     }
 
-    private void MovementDetected(int cnnId, string[] data)
+    private void MovementDetected(NetworkStructs.PositionVelocityData data)
     {
-        if(players[cnnId] != null)
+        if(players[data.id] != null)
         {
-            NetworkedPlayerAdapter character = players[cnnId].avatar.GetComponent<NetworkedPlayerAdapter>();
-            //character.Move();
+            NetworkedPlayerAdapter character = players[data.id].avatar.GetComponent<NetworkedPlayerAdapter>();
+            Vector3 pos = new Vector3(data.xPos, data.yPos, data.zPos);
+            Vector3 vel = new Vector3(data.xVel, data.yVel, data.zVel);
+
+            character.Move(pos, vel);
         }
     }
 
@@ -251,6 +257,13 @@ public class Client : MonoBehaviour
     public void SendRotation(float xRot, float yRot)
     {
         NetworkStructs.RotationData msg = new NetworkStructs.RotationData(ourClientId, xRot, yRot);
+
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), unreliableChannel);
+    }
+
+    public void SendMovement(Vector3 pos, Vector3 vel)
+    {
+        NetworkStructs.PositionVelocityData msg = new NetworkStructs.PositionVelocityData(ourClientId, pos, vel);
 
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), unreliableChannel);
     }
