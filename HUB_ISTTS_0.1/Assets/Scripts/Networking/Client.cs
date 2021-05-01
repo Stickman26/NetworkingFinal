@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
@@ -95,39 +96,54 @@ public class Client : MonoBehaviour
         {
             case NetworkEventType.DataEvent:
                 {
-                    string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                    Debug.Log("Receiving : " + msg);
+                    NetworkStructs.MessageTypes type = (NetworkStructs.MessageTypes)recBuffer[0];
 
-                    string[] splitData = msg.Split('|');
+                    byte[] packet = new byte[1024];
+                    Array.Copy(recBuffer, 1, packet, 0, bufferSize - 1);
 
-                    switch (splitData[0])
+                    switch (type)
                     {
-                        case "ASKNAME": //get username
-                            OnAskName(splitData);
+                        case NetworkStructs.MessageTypes.ASKNAME: //get username
+                            {
+                                NetworkStructs.NameRequestData data = NetworkStructs.fromBytes<NetworkStructs.NameRequestData>(packet);
+                                OnAskName(data);
+                            }
                             break;
 
-                        case "CNN": //connection
-                            SpawnPlayer(splitData[1], int.Parse(splitData[2]));
+                        case NetworkStructs.MessageTypes.CNN: //connection
+                            {
+                                NetworkStructs.NameRequestData data = NetworkStructs.fromBytes<NetworkStructs.NameRequestData>(packet);
+                                SpawnPlayer(data.str, data.id);
+                            }
                             break;
 
-                        case "DC": //disconnection
-                            PlayerDisconnected(int.Parse(splitData[1]));
+                        case NetworkStructs.MessageTypes.DC: //disconnection
+                            {
+                                NetworkStructs.IntData data = NetworkStructs.fromBytes<NetworkStructs.IntData>(packet);
+                                PlayerDisconnected(data.data);
+                            }
                             break;
 
-                        case "MOVE":
+                        case NetworkStructs.MessageTypes.MOVE:
                             //MovementDetected(int.Parse(splitData[1]), splitData);
                             break;
 
-                        case "ROT":
-                            RotationgDetected(int.Parse(splitData[1]), splitData);
+                        case NetworkStructs.MessageTypes.ROT:
+                            {
+                                NetworkStructs.RotationData data = NetworkStructs.fromBytes<NetworkStructs.RotationData>(packet);
+                                RotationgDetected(data);
+                            }
                             break;
 
-                        case "MESSAGE":
-                            recieveMessage(splitData[1], splitData[2]);
+                        case NetworkStructs.MessageTypes.MESSAGE:
+                            {
+                                NetworkStructs.StringData data = NetworkStructs.fromBytes<NetworkStructs.StringData>(packet);
+                                recieveMessage(data);
+                            }
                             break;
 
                         default: //invalid key case
-                            Debug.Log("INVALID CLIENT MESSAGE : " + msg);
+                            //Debug.Log("INVALID CLIENT MESSAGE : " + msg);
                             break;
                     }
                 }
@@ -142,18 +158,22 @@ public class Client : MonoBehaviour
 
     }
 
-    private void OnAskName(string[] data)
+    private void OnAskName(NetworkStructs.NameRequestData data)
     {
         //set this clients ID
-        ourClientId = int.Parse(data[1]);
+        ourClientId = data.id;
+
+        NetworkStructs.StringData msg = new NetworkStructs.StringData(playerName);
 
         //Send our name to the server
-        Send("NAMEIS|" + playerName, reliableChannel);
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.NAMEIS, NetworkStructs.getBytes(msg)), reliableChannel);
+
+        string[] connectionList = data.str.Split('|');
 
         //Create all the other players
-        for (int i = 2; i < data.Length - 1; ++i)
+        for (int i = 2; i < connectionList.Length - 1; ++i)
         {
-            string[] d = data[i].Split('%');
+            string[] d = connectionList[i].Split('%');
             SpawnPlayer(d[0], int.Parse(d[1]));
         }
     }
@@ -217,42 +237,33 @@ public class Client : MonoBehaviour
         }
     }
 
-    private void RotationgDetected(int cnnId, string[] data)
+    private void RotationgDetected(NetworkStructs.RotationData data)
     {
-        if (players[cnnId] != null)
+        if (players[data.id] != null)
         {
-            NetworkedPlayerAdapter character = players[cnnId].avatar.GetComponent<NetworkedPlayerAdapter>();
-            float xRot = int.Parse(data[2]);
-            float yRot = int.Parse(data[3]);
+            NetworkedPlayerAdapter character = players[data.id].avatar.GetComponent<NetworkedPlayerAdapter>();
+            float xRot = data.xRot;
+            float yRot = data.yRot;
             character.Look(xRot, yRot);
         }
     }
 
     public void SendRotation(float xRot, float yRot)
     {
-        string msg = "ROT|";
-        msg += ((int)xRot).ToString() + "|";
-        msg += ((int)yRot).ToString();
+        NetworkStructs.RotationData msg = new NetworkStructs.RotationData(ourClientId, xRot, yRot);
 
-        Send(msg, unreliableChannel);
-    }
-
-    private void Send(string message, int channelID)
-    {
-        Debug.Log("Sending : " + message);
-
-        byte[] msg = Encoding.Unicode.GetBytes(message);
-
-        NetworkTransport.Send(hostId, connectionId, channelID, msg, message.Length * sizeof(char), out error);
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), unreliableChannel);
     }
 
     public void sendMessage(string msg, int channelID)
     {
-        msg = "MESSAGE|" + msg;
-        Send(msg, channelID);
+        msg = "[" + playerName + "]: " + msg; 
+        NetworkStructs.StringData message = new NetworkStructs.StringData(msg);
+
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MESSAGE, NetworkStructs.getBytes(message)), channelID);
     }
 
-    public void recieveMessage(string sentID, string msg)
+    public void recieveMessage(NetworkStructs.StringData data)
     {
         if(messageList.Count >= maxMessages)
         {
@@ -266,7 +277,7 @@ public class Client : MonoBehaviour
         }
 
         Message msgToPrint = new Message();
-        msgToPrint.text = sentID + ": " + msg;
+        msgToPrint.text = data.str;
 
         GameObject newText = Instantiate(textObject);
         newText.transform.SetParent(chatPanel.transform, false);
@@ -281,5 +292,13 @@ public class Client : MonoBehaviour
     {
         public string text;
         public TextMeshProUGUI textObject;
+    }
+
+    private void Send(byte[] msg, int channelID)
+    {
+        //Debug.Log("Sending : " + message);
+
+        
+        NetworkTransport.Send(hostId, connectionId, channelID, msg, msg.Length, out error);
     }
 }
