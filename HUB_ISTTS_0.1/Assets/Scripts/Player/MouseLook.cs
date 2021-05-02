@@ -11,7 +11,7 @@ public class MouseLook : MonoBehaviour
 
     private float xRot = 0f;
 
-    private float sendDelay = 1f;
+    private float sendDelay = 0.5f;
     private float lastSent;
 
     public void MouseState(bool locked)

@@ -126,8 +126,8 @@ public class Client : MonoBehaviour
 
                         case NetworkStructs.MessageTypes.MOVE:
                             {
-
-                                //MovementDetected(int.Parse(splitData[1]), splitData);
+                                NetworkStructs.PositionVelocityData data = NetworkStructs.fromBytes<NetworkStructs.PositionVelocityData>(packet);
+                                MovementDetected(data);
                             }
                             break;
 
@@ -174,10 +174,13 @@ public class Client : MonoBehaviour
         string[] connectionList = data.str.Split('|');
 
         //Create all the other players
-        for (int i = 2; i < connectionList.Length - 1; ++i)
+        for (int i = 0; i < connectionList.Length; ++i)
         {
             string[] d = connectionList[i].Split('%');
-            SpawnPlayer(d[0], int.Parse(d[1]));
+            if (int.Parse(d[1]) != ourClientId)
+            {
+                SpawnPlayer(d[0], int.Parse(d[1]));
+            }
         }
     }
 
@@ -233,28 +236,24 @@ public class Client : MonoBehaviour
 
     private void MovementDetected(NetworkStructs.PositionVelocityData data)
     {
-        if(players[data.id] != null)
+        if(data.id != ourClientId && players[data.id] != null)
         {
             NetworkedPlayerAdapter character = players[data.id].avatar.GetComponent<NetworkedPlayerAdapter>();
             Vector3 pos = new Vector3(data.xPos, data.yPos, data.zPos);
             Vector3 vel = new Vector3(data.xVel, data.yVel, data.zVel);
 
             character.Move(pos, vel);
-
-            SendMovement(character.body.position, character.rb.velocity);
         }
     }
 
     private void RotationgDetected(NetworkStructs.RotationData data)
     {
-        if (players[data.id] != null)
+        if (data.id != ourClientId && players[data.id] != null)
         {
             NetworkedPlayerAdapter character = players[data.id].avatar.GetComponent<NetworkedPlayerAdapter>();
             float xRot = data.xRot;
             float yRot = data.yRot;
             character.Look(xRot, yRot);
-
-            SendRotation(character.lookComponent.rotation.x, character.lookComponent.rotation.y);
         }
     }
 
@@ -262,14 +261,14 @@ public class Client : MonoBehaviour
     {
         NetworkStructs.RotationData msg = new NetworkStructs.RotationData(ourClientId, xRot, yRot);
 
-        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), reliableChannel);
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), unreliableChannel);
     }
 
     public void SendMovement(Vector3 pos, Vector3 vel)
     {
         NetworkStructs.PositionVelocityData msg = new NetworkStructs.PositionVelocityData(ourClientId, pos, vel);
 
-        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVE, NetworkStructs.getBytes(msg)), reliableChannel);
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVE, NetworkStructs.getBytes(msg)), unreliableChannel);
     }
 
     public void sendMessage(string msg, int channelID)

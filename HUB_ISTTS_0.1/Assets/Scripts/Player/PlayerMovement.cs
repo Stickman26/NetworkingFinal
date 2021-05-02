@@ -25,6 +25,10 @@ public class PlayerMovement : MonoBehaviour
     bool disableInput;
     bool inputFieldActive;
 
+    //Timing
+    private float sendDelay = 0.5f;
+    private float lastSent;
+
     private void Start()
     {
         controller = GetComponent<CharacterController>();
@@ -111,7 +115,13 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        GameObject.Find("Networking").GetComponent<Client>().SendMovement(gameObject.transform.position, velocity);
+        if (sendDelay <= lastSent)
+        {
+            lastSent = 0;
+            GameObject.Find("Networking").GetComponent<Client>().SendMovement(gameObject.transform.position, velocity);
+        }
+        else
+            lastSent += Time.deltaTime;
     }
 
     public void hideChatBox()
