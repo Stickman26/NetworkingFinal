@@ -16,7 +16,7 @@ public class ServerInterface : MonoBehaviour
 
     private void Start()
     {
-        string address = GetLocalIP();
+        string address = CheckIP();
         addressHolder.text = addressStart + address;
     }
 
@@ -38,5 +38,14 @@ public class ServerInterface : MonoBehaviour
     {
         consoleOutput.text += output;
         consoleOutput.text += "\n";
+    }
+
+    public string CheckIP()
+    {
+
+        string externalIpString = new WebClient().DownloadString("http://icanhazip.com").Replace("\\r\\n", "").Replace("\\n", "").Trim();
+        var externalIp = IPAddress.Parse(externalIpString);
+
+        return externalIp.ToString();
     }
 }
