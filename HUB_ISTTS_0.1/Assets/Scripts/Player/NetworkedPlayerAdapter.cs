@@ -8,6 +8,7 @@ public class NetworkedPlayerAdapter : MonoBehaviour
     public Transform body;
     //public Rigidbody rb;
     public Vector3 lastPos;
+    public float lerpDuration;
 
     public void Move(Vector3 pos, Vector3 vel)
     {
@@ -16,10 +17,16 @@ public class NetworkedPlayerAdapter : MonoBehaviour
             lastPos = new Vector3(0.0f, 0.0f, 0.0f);
         }
 
+        float timeElapsed = 0;
+
         body.transform.position = pos;
         //rb.velocity = vel;
 
-        body.transform.position = Vector3.Lerp(lastPos, pos, 0.1f);
+        while (timeElapsed < lerpDuration)
+        {
+            body.position = Vector3.Lerp(lastPos, pos, timeElapsed / lerpDuration);
+            timeElapsed += Time.deltaTime;
+        }
 
         lastPos = pos;
     }
