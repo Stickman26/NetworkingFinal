@@ -8,7 +8,7 @@ public class NetworkedPlayerAdapter : MonoBehaviour
     public Transform body;
     //public Rigidbody rb;
     public Vector3 lastPos;
-    public float lerpDuration;
+    public float lerpDuration = 0.0f;
 
     public void Move(Vector3 pos, Vector3 vel)
     {
@@ -26,6 +26,11 @@ public class NetworkedPlayerAdapter : MonoBehaviour
         {
             body.position = Vector3.Lerp(lastPos, pos, timeElapsed / lerpDuration);
             timeElapsed += Time.deltaTime;
+
+            if(timeElapsed < lerpDuration)
+            {
+                GameObject.Find("Networking").GetComponent<Client>().SendMovement(body.position, vel);
+            }
         }
 
         lastPos = pos;
