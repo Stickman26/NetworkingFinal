@@ -26,7 +26,7 @@ public class PlayerMovement : MonoBehaviour
     bool inputFieldActive;
 
     //Timing
-    private float sendDelay = 0.5f;
+    private float sendDelay = 0.1f;
     private float lastSent;
 
     private void Start()

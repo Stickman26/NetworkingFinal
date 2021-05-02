@@ -7,39 +7,34 @@ public class NetworkedPlayerAdapter : MonoBehaviour
     public Transform lookComponent;
     public Transform body;
     //public Rigidbody rb;
-    public Vector3 lastPos;
-    public float lerpDuration = 0.0f;
+    
+    private Vector3 PosTo;
+    private Quaternion Rotx;
+    private Quaternion Roty;
+
+    private float lerpVal = 0.1f;
 
     public void Move(Vector3 pos, Vector3 vel)
     {
-        if(lastPos == null)
-        {
-            lastPos = new Vector3(0.0f, 0.0f, 0.0f);
-        }
-
-        float timeElapsed = 0;
-
-        body.transform.position = pos;
+        PosTo = pos;
         //rb.velocity = vel;
-
-        while (timeElapsed < lerpDuration)
-        {
-            body.position = Vector3.Lerp(lastPos, pos, timeElapsed / lerpDuration);
-            timeElapsed += Time.deltaTime;
-
-            if(timeElapsed < lerpDuration)
-            {
-                GameObject.Find("Networking").GetComponent<Client>().SendMovement(body.position, vel);
-            }
-        }
-
-        lastPos = pos;
     }
 
     public void Look(float xRot, float yRot)
     {
-        lookComponent.localRotation = Quaternion.Euler(xRot, 0f, 0f);
-        body.rotation = Quaternion.Euler(0f, yRot, 0f);
+        Rotx = Quaternion.Euler(xRot, 0f, 0f);
+        Roty = Quaternion.Euler(0f, yRot, 0f);
     }
 
+    void Start()
+    {
+        PosTo = body.position;
+    }
+
+    void Update()
+    {
+        body.position = Vector3.Lerp(body.position, PosTo, lerpVal);
+        lookComponent.localRotation = Quaternion.Lerp(lookComponent.localRotation, Rotx, lerpVal);
+        body.rotation = Quaternion.Lerp(body.rotation, Roty, lerpVal);
+    }
 }
