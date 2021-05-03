@@ -18,6 +18,7 @@ public class NetworkStructs
         NAMEIS,
         ROT,
         MOVE,
+        ADMIN,
 
         MESSAGE_LIST_END
     }

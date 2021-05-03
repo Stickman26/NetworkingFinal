@@ -143,6 +143,13 @@ public class Client : MonoBehaviour
                             }
                             break;
 
+                        case NetworkStructs.MessageTypes.ADMIN: 
+                            {
+                                NetworkStructs.StringData data = NetworkStructs.fromBytes<NetworkStructs.StringData>(packet);
+                                adminCommands(data.ToString());
+                            }
+                            break;
+
                         default: //invalid key case
                             //Debug.Log("INVALID CLIENT MESSAGE : " + msg);
                             break;
@@ -271,10 +278,18 @@ public class Client : MonoBehaviour
 
     public void sendMessage(string msg, int channelID)
     {
-        msg = "[" + playerName + "]: " + msg; 
-        NetworkStructs.StringData message = new NetworkStructs.StringData(msg);
+        if (msg.StartsWith("/"))
+        {
+            NetworkStructs.StringData message = new NetworkStructs.StringData(msg);
+            Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ADMIN, NetworkStructs.getBytes(message)), channelID);
+        }
+        else
+        {
+            msg = "[" + playerName + "]: " + msg;
+            NetworkStructs.StringData message = new NetworkStructs.StringData(msg);
 
-        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MESSAGE, NetworkStructs.getBytes(message)), channelID);
+            Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MESSAGE, NetworkStructs.getBytes(message)), channelID);
+        }
     }
 
     public void recieveMessage(NetworkStructs.StringData data)
@@ -295,5 +310,21 @@ public class Client : MonoBehaviour
 
         
         NetworkTransport.Send(hostId, connectionId, channelID, msg, msg.Length, out error);
+    }
+
+    private void adminCommands(string msg)
+    {
+        if (msg.StartsWith("1"))
+        {
+            //set jump height
+        }
+        else if (msg.StartsWith("2"))
+        {
+            //set move speed
+        }
+        else
+        {
+            //unrecognized command (don't necessarily need this if we set the server to respond) 
+        }
     }
 }

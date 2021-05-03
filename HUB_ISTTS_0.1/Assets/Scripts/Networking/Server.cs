@@ -113,6 +113,13 @@ public class Server : MonoBehaviour
                             Send(recBuffer, reliableChannel);
                             break;
 
+                        case NetworkStructs.MessageTypes.ADMIN:
+                            {
+                                NetworkStructs.StringData data = NetworkStructs.fromBytes<NetworkStructs.StringData>(packet);
+                                adminCommands(data.ToString());
+                            }
+                            break;
+
                         default: //invalid key case
                             //Debug.Log("INVALID SERVER MESSAGE : ");
                             serverConsole.AddToConsole("INVALID SERVER MESSAGE : ");
@@ -242,6 +249,22 @@ public class Server : MonoBehaviour
         foreach (ServerClient sc in clients)
         {
             NetworkTransport.Send(hostId, sc.connectionID, channelID, msg, msg.Length, out error);
+        }
+    }
+
+    private void adminCommands(string msg)
+    {
+        if (msg.Contains("/setjump"))
+        {
+            //actually set the jump and send a response back to the specific player (or all players?)
+        }
+        else if (msg.Contains("/setspeed"))
+        {
+            //actually change the player speed and send a response back to the specific player (or all players?)
+        }
+        else
+        {
+            //send message back to specific player saying that the specified command doesn't exist
         }
     }
 }
