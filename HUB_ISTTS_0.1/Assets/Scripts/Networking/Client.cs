@@ -314,13 +314,20 @@ public class Client : MonoBehaviour
 
     private void adminCommands(string msg)
     {
-        if (msg.StartsWith("1"))
+        Debug.Log("MSG = " + msg);
+        if (msg[0].Equals("1"))
         {
             //set jump height
+            Debug.Log("Setting jump height");
+            string height = msg.Substring(1);
+            playerPrefab.GetComponent<PlayerMovement>().jumpHeight = int.Parse(height);
         }
-        else if (msg.StartsWith("2"))
+        else if (msg[0].Equals("2"))
         {
             //set move speed
+            Debug.Log("Setting move speed");
+            string speed = msg.Substring(1);
+            playerPrefab.GetComponent<PlayerMovement>().speedMod = int.Parse(speed);
         }
         else
         {

@@ -116,7 +116,7 @@ public class Server : MonoBehaviour
                         case NetworkStructs.MessageTypes.ADMIN:
                             {
                                 NetworkStructs.StringData data = NetworkStructs.fromBytes<NetworkStructs.StringData>(packet);
-                                adminCommands(data.ToString());
+                                adminCommands(data.str, connectionId);
                             }
                             break;
 
@@ -252,27 +252,42 @@ public class Server : MonoBehaviour
         }
     }
 
-    private void adminCommands(string msg)
+    private void adminCommands(string msg, int cnnID)
     {
         if (msg.Contains("/setjump"))
         {
             //actually set the jump and send a response back to the specific player (or all players?)
-            NetworkStructs.StringData data = new NetworkStructs.StringData("1" + " Setting player jump height to: " + msg[msg.Length]);
-            Send(NetworkStructs.getBytes(data), reliableChannel);
+            string number = msg.Substring(8);
+            NetworkStructs.StringData data = new NetworkStructs.StringData("Setting player jump height to: " + number);
+            serverConsole.AddToConsole("Setting player jump height to: " + number);
+            Send(NetworkStructs.getBytes(data), reliableChannel, cnnID);
+
+            string messageToSend = "1";
+            messageToSend += number;
+            data = new NetworkStructs.StringData(messageToSend);
+            Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ADMIN, NetworkStructs.getBytes(data)), reliableChannel);
         }
         else if (msg.Contains("/setspeed"))
         {
             //actually change the player speed and send a response back to the specific player (or all players?)
-            NetworkStructs.StringData data = new NetworkStructs.StringData("2" + " Setting player move speed to: " + msg[msg.Length]);
-            Send(NetworkStructs.getBytes(data), reliableChannel);
+            string number = msg.Substring(9);
+            NetworkStructs.StringData data = new NetworkStructs.StringData("Setting player move speed to: " + number);
+            serverConsole.AddToConsole("Setting player move speed to: " + number);
+            Send(NetworkStructs.getBytes(data), reliableChannel, cnnID);
+
+            string messageToSend = "2";
+            messageToSend += number;
+            data = new NetworkStructs.StringData(messageToSend);
+            Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ADMIN, NetworkStructs.getBytes(data)), reliableChannel);
         }
         else
         {
             //send message back to specific player saying that the specified command doesn't exist
             NetworkStructs.StringData data = new NetworkStructs.StringData("Command: " + msg + " :Doesn't exist!");
+            serverConsole.AddToConsole("Command: " + msg + " :Doesn't exist!");
 
-            //this will send to all players, needs to be modified
-            Send(NetworkStructs.getBytes(data), reliableChannel);
+            //this will send to just the player who sent the commnad (i think)
+            Send(NetworkStructs.getBytes(data), reliableChannel, cnnID);
         }
     }
 }
