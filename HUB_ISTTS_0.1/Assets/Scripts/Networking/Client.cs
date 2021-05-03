@@ -146,7 +146,7 @@ public class Client : MonoBehaviour
                         case NetworkStructs.MessageTypes.ADMIN: 
                             {
                                 NetworkStructs.StringData data = NetworkStructs.fromBytes<NetworkStructs.StringData>(packet);
-                                adminCommands(data.ToString());
+                                adminCommands(data.str);
                             }
                             break;
 
@@ -315,14 +315,14 @@ public class Client : MonoBehaviour
     private void adminCommands(string msg)
     {
         Debug.Log("MSG = " + msg);
-        if (msg[0].Equals("1"))
+        if (msg.StartsWith("1"))
         {
             //set jump height
             Debug.Log("Setting jump height");
             string height = msg.Substring(1);
             playerPrefab.GetComponent<PlayerMovement>().jumpHeight = int.Parse(height);
         }
-        else if (msg[0].Equals("2"))
+        else if (msg.StartsWith("2"))
         {
             //set move speed
             Debug.Log("Setting move speed");
