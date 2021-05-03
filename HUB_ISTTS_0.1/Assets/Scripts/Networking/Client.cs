@@ -146,7 +146,7 @@ public class Client : MonoBehaviour
                         case NetworkStructs.MessageTypes.ADMIN: 
                             {
                                 NetworkStructs.StringData data = NetworkStructs.fromBytes<NetworkStructs.StringData>(packet);
-                                adminCommands(data.str);
+                                adminCommands(data.str, connectionId);
                             }
                             break;
 
@@ -312,22 +312,37 @@ public class Client : MonoBehaviour
         NetworkTransport.Send(hostId, connectionId, channelID, msg, msg.Length, out error);
     }
 
-    private void adminCommands(string msg)
+    private void adminCommands(string msg, int cnnID)
     {
-        Debug.Log("MSG = " + msg);
         if (msg.StartsWith("1"))
         {
             //set jump height
-            Debug.Log("Setting jump height");
             string height = msg.Substring(1);
-            playerPrefab.GetComponent<PlayerMovement>().jumpHeight = int.Parse(height);
+            Player localPlayer;
+
+            if (players.TryGetValue(cnnID, out localPlayer))
+            {
+                localPlayer.avatar.GetComponent<PlayerMovement>().jumpHeight = int.Parse(height);
+            }
+            else
+            {
+                Debug.Log("Unable to find local player!");
+            }
         }
         else if (msg.StartsWith("2"))
         {
             //set move speed
-            Debug.Log("Setting move speed");
             string speed = msg.Substring(1);
-            playerPrefab.GetComponent<PlayerMovement>().speedMod = int.Parse(speed);
+            Player localPlayer;
+
+            if (players.TryGetValue(cnnID, out localPlayer))
+            {
+                localPlayer.avatar.GetComponent<PlayerMovement>().speedMod = int.Parse(speed);
+            }
+            else
+            {
+                Debug.Log("Unable to find local player!");
+            }
         }
         else
         {
