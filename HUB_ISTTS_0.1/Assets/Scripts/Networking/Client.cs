@@ -146,7 +146,7 @@ public class Client : MonoBehaviour
                         case NetworkStructs.MessageTypes.ADMIN: 
                             {
                                 NetworkStructs.StringData data = NetworkStructs.fromBytes<NetworkStructs.StringData>(packet);
-                                adminCommands(data.str, connectionId);
+                                adminCommands(data.str, ourClientId);
                             }
                             break;
 
