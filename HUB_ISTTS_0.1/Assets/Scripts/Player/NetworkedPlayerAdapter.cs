@@ -12,7 +12,7 @@ public class NetworkedPlayerAdapter : MonoBehaviour
     private Quaternion Rotx;
     private Quaternion Roty;
 
-    private float lerpVal = 3.0f;
+    private float lerpVal = 0.1f;
 
     public void Move(Vector3 pos, Vector3 vel)
     {
