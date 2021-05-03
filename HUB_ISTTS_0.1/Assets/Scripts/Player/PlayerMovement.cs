@@ -77,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         //toggle chat input (disable game inputs)
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Input.GetKeyDown(KeyCode.Tab))
         {
             if (!disableInput)
             {
@@ -97,7 +97,7 @@ public class PlayerMovement : MonoBehaviour
                 {
                     GameObject sendMessage = GameObject.Find("Networking");
 
-                    string temp = sendMessage.GetComponent<Client>().ourClientId.ToString() + "|" + chatBox.GetComponent<TMP_InputField>().text;
+                    string temp = chatBox.GetComponent<TMP_InputField>().text;
 
                     sendMessage.GetComponent<Client>().sendMessage(temp, sendMessage.GetComponent<Client>().reliableChannel);
                     chatBox.GetComponent<TMP_InputField>().text = "";
@@ -114,6 +114,12 @@ public class PlayerMovement : MonoBehaviour
                 hideChatBox();
             }
         }
+        else if (inputFieldActive == false)
+        {
+            chatBox.GetComponent<TMP_InputField>().text = "";
+            chatBox.GetComponent<TMP_InputField>().DeactivateInputField();
+            //chatPanel.GetComponent<Scrollbar>().
+        }
 
         if (sendDelay <= lastSent)
         {
@@ -127,14 +133,15 @@ public class PlayerMovement : MonoBehaviour
     public void hideChatBox()
     {
         chatPanel.GetComponent<ScrollRect>().scrollSensitivity = 0;
+        inputFieldActive = false;
         disableInput = false;
-        StartCoroutine("hideChat");
+        //StartCoroutine("hideChat");
     }
 
     IEnumerator hideChat()
     {
         yield return new WaitForSecondsRealtime(1.0f);
 
-        chatBox.GetComponentInParent<GameObject>().SetActive(false);
+        GameObject.Find("Scroll View").SetActive(false);
     }
 }

@@ -38,8 +38,6 @@ public class Client : MonoBehaviour
     public Dictionary<int, Player> players = new Dictionary<int, Player>();
 
     //chat vars
-    public List<Message> messageList = new List<Message>();
-    public int maxMessages = 25;
     public GameObject chatPanel;
     public GameObject textObject;
     public GameObject chatBox;
@@ -281,33 +279,14 @@ public class Client : MonoBehaviour
 
     public void recieveMessage(NetworkStructs.StringData data)
     {
-        if(messageList.Count >= maxMessages)
-        {
-            Destroy(messageList[0].textObject.gameObject);
-            messageList.Remove(messageList[0]);
-        }
 
         if(chatBox.activeSelf == false)
         {
             chatBox.SetActive(true);
         }
 
-        Message msgToPrint = new Message();
-        msgToPrint.text = data.str;
-
-        GameObject newText = Instantiate(textObject);
-        newText.transform.SetParent(chatPanel.transform, false);
-
-        msgToPrint.textObject = newText.GetComponent<TextMeshProUGUI>();
-        msgToPrint.textObject.text = msgToPrint.text;
-
-        messageList.Add(msgToPrint);
-    }
-
-    public class Message
-    {
-        public string text;
-        public TextMeshProUGUI textObject;
+        chatPanel.GetComponent<TextMeshProUGUI>().text += "\n";
+        chatPanel.GetComponent<TextMeshProUGUI>().text += data.str;
     }
 
     private void Send(byte[] msg, int channelID)
