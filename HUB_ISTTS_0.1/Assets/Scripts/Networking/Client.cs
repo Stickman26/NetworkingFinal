@@ -324,7 +324,7 @@ public class Client : MonoBehaviour
         }
         else
         {
-            //unrecognized command (don't necessarily need this if we set the server to respond) 
+            //unrecognized command (don't necessarily need this if we set the server to respond)
         }
     }
 }

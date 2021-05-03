@@ -257,14 +257,22 @@ public class Server : MonoBehaviour
         if (msg.Contains("/setjump"))
         {
             //actually set the jump and send a response back to the specific player (or all players?)
+            NetworkStructs.StringData data = new NetworkStructs.StringData("1" + " Setting player jump height to: " + msg[msg.Length]);
+            Send(NetworkStructs.getBytes(data), reliableChannel);
         }
         else if (msg.Contains("/setspeed"))
         {
             //actually change the player speed and send a response back to the specific player (or all players?)
+            NetworkStructs.StringData data = new NetworkStructs.StringData("2" + " Setting player move speed to: " + msg[msg.Length]);
+            Send(NetworkStructs.getBytes(data), reliableChannel);
         }
         else
         {
             //send message back to specific player saying that the specified command doesn't exist
+            NetworkStructs.StringData data = new NetworkStructs.StringData("Command: " + msg + " :Doesn't exist!");
+
+            //this will send to all players, needs to be modified
+            Send(NetworkStructs.getBytes(data), reliableChannel);
         }
     }
 }
