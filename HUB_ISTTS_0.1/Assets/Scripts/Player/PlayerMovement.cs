@@ -130,6 +130,16 @@ public class PlayerMovement : MonoBehaviour
             lastSent += Time.deltaTime;
     }
 
+    public void SetPlayerPosition(Vector3 pos, Quaternion rot)
+    {
+        controller.enabled = false;
+        transform.position = pos;
+        transform.rotation = rot;
+        controller.enabled = true;
+        
+        Debug.Log(transform.position);
+    }
+
     public void hideChatBox()
     {
         chatPanel.GetComponent<ScrollRect>().scrollSensitivity = 0;

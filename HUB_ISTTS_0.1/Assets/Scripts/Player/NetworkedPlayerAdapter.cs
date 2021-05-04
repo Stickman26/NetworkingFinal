@@ -33,7 +33,17 @@ public class NetworkedPlayerAdapter : MonoBehaviour
 
     void Update()
     {
-        body.position = Vector3.Lerp(body.position, PosTo, lerpVal);
+        //Movement
+        if (Vector3.Magnitude(PosTo - body.position) < 4f)
+        {
+            body.position = Vector3.Lerp(body.position, PosTo, lerpVal);
+        }
+        else
+        {
+            body.position = PosTo;
+        }
+
+        //Rotation
         lookComponent.localRotation = Quaternion.Lerp(lookComponent.localRotation, Rotx, lerpVal);
         body.rotation = Quaternion.Lerp(body.rotation, Roty, lerpVal);
     }
