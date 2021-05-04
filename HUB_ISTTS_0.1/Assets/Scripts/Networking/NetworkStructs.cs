@@ -7,6 +7,7 @@ using System;
 
 public class NetworkStructs
 {
+    //enum of all our message types
     public enum MessageTypes : byte
     {
         MESSAGE_LIST_START = 0,
@@ -48,6 +49,7 @@ public class NetworkStructs
         }
     }
 
+    //requests a player's name when they connect to the server
     public struct NameRequestData
     {
         public int id;
@@ -106,6 +108,7 @@ public class NetworkStructs
         }
     }
 
+    //AI movement data struct
     public struct AIMoveData
     {
         public int id;
@@ -124,6 +127,7 @@ public class NetworkStructs
         }
     }
 
+    //setup for AI and their structs
     public struct AIInitialMoveData
     {
         public int id;
@@ -167,6 +171,7 @@ public class NetworkStructs
         }
     }*/
 
+    //adds the specified tag to the start of our message
     public static byte[] AddTag(MessageTypes type, byte[] arr)
     {
         int len = arr.Length;

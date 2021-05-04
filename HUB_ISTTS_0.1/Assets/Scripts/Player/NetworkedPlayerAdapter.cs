@@ -14,12 +14,14 @@ public class NetworkedPlayerAdapter : MonoBehaviour
 
     private float lerpVal = 0.1f;
 
+    //sets the values so that they're stored locally
     public void Move(Vector3 pos, Vector3 vel)
     {
         PosTo = pos;
         //rb.velocity = vel;
     }
 
+    //sets the values so that they're stored locally
     public void Look(float xRot, float yRot)
     {
         Rotx = Quaternion.Euler(xRot, 0f, 0f);
@@ -36,6 +38,7 @@ public class NetworkedPlayerAdapter : MonoBehaviour
         //Movement
         if (Vector3.Magnitude(PosTo - body.position) < 4f)
         {
+            //Lerp between last known pos and the newly recieved pos
             body.position = Vector3.Lerp(body.position, PosTo, lerpVal);
         }
         else
@@ -43,7 +46,7 @@ public class NetworkedPlayerAdapter : MonoBehaviour
             body.position = PosTo;
         }
 
-        //Rotation
+        //Rotation, lerp between last known rotation and the newlt recieved rotation
         lookComponent.localRotation = Quaternion.Lerp(lookComponent.localRotation, Rotx, lerpVal);
         body.rotation = Quaternion.Lerp(body.rotation, Roty, lerpVal);
     }

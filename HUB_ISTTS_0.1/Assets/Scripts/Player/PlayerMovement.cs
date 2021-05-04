@@ -50,8 +50,10 @@ public class PlayerMovement : MonoBehaviour
             chatPanel = GameObject.Find("Scroll View");
         }
 
+        //checks if the chatbox is currently active
         if(disableInput == false)
         {
+            //if it isn't, let the player play the game
             isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
             if (isGrounded && velocity.y < 0)
@@ -89,10 +91,13 @@ public class PlayerMovement : MonoBehaviour
             inputFieldActive = true;
         }
 
+        //checks if the chatbox input is active
         if (inputFieldActive)
         {
+            //if it is, it deactivates the chatbox input when the player presses enter/return key
             if (Input.GetKeyDown(KeyCode.Return))
             {
+                //if the message box is empty, don't send the message
                 if(chatBox.GetComponent<TMP_InputField>().text != "")
                 {
                     GameObject sendMessage = GameObject.Find("Networking");
@@ -107,6 +112,7 @@ public class PlayerMovement : MonoBehaviour
                 hideChatBox();
             }
 
+            //or it will close the chat interface and clear the new message box by pressing escape
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 chatBox.GetComponent<TMP_InputField>().text = "";
@@ -116,11 +122,13 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (inputFieldActive == false)
         {
+            //or if the chatbox isn't active, it will make sure it stays inactive
             chatBox.GetComponent<TMP_InputField>().text = "";
             chatBox.GetComponent<TMP_InputField>().DeactivateInputField();
             //chatPanel.GetComponent<Scrollbar>().
         }
 
+        //send delay so we aren't sending a shit ton of messages over the network and clogging up the pipeline
         if (sendDelay <= lastSent)
         {
             lastSent = 0;
@@ -130,6 +138,7 @@ public class PlayerMovement : MonoBehaviour
             lastSent += Time.deltaTime;
     }
 
+    //sets the players position
     public void SetPlayerPosition(Vector3 pos, Quaternion rot)
     {
         controller.enabled = false;
@@ -140,18 +149,11 @@ public class PlayerMovement : MonoBehaviour
         Debug.Log(transform.position);
     }
 
+    //deactivates the chatbox, doesn't actually hide the chat box
     public void hideChatBox()
     {
         chatPanel.GetComponent<ScrollRect>().scrollSensitivity = 0;
         inputFieldActive = false;
         disableInput = false;
-        //StartCoroutine("hideChat");
-    }
-
-    IEnumerator hideChat()
-    {
-        yield return new WaitForSecondsRealtime(1.0f);
-
-        GameObject.Find("Scroll View").SetActive(false);
     }
 }

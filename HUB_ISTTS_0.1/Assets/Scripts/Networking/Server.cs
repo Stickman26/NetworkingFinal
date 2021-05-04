@@ -169,27 +169,34 @@ public class Server : MonoBehaviour
         AIPositionUpdate();
     }
 
+    //update the position of the AI
     private void AIPositionUpdate()
     {
+        //iterate through our dictionary to make sure we don't have any duplicates and to make sure each AI moves
         foreach (AI a in AIList.Values)
         {
             if (!a.switchBack)
             {
+                //tells the AI to keep moving
                 a.current = Vector3.MoveTowards(a.current, a.pos1, 0.01f);
                 if (Vector3.Magnitude(a.current - a.pos1) < 0.1f)
                 {
+                    //tells the AI to swap directions
                     a.switchBack = true;
                 }
             }
             else
             {
+                //tells the AI to keep moving in the opposite direction of the above movement
                 a.current = Vector3.MoveTowards(a.current, a.pos2, 0.01f);
                 if (Vector3.Magnitude(a.current - a.pos2) < 0.1f)
                 {
+                    //tells the AI to swap directions again
                     a.switchBack = false;
                 }
             }
 
+            //send delay so we aren't sending it a shit ton of times per second
             if (sendDelay <= lastSent && clients.Count != 0)
             {
                 lastSent = 0;
@@ -203,6 +210,7 @@ public class Server : MonoBehaviour
         }
     }
 
+    //when a player connects
     private void OnConnection(int cnnId)
     {
         // add connection to list
@@ -223,6 +231,7 @@ public class Server : MonoBehaviour
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ASKNAME, NetworkStructs.getBytes(msg)),reliableChannel,cnnId);
     }
 
+    //when a player disconnects
     private void OnDisconnection(int cnnId)
     {
         //Remove this player from client list
@@ -234,6 +243,7 @@ public class Server : MonoBehaviour
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.DC, NetworkStructs.getBytes(msg)), reliableChannel, clients);
     }
 
+    //when the player responds with their username
     private void OnNameIs(int cnnId, string playerName)
     {
         //Link name to connection ID
@@ -245,29 +255,37 @@ public class Server : MonoBehaviour
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.CNN, NetworkStructs.getBytes(msg)), reliableChannel, clients);
     }
 
+    //how to handle setting up the AI
     private void OnAISetup(NetworkStructs.AIInitialMoveData data)
     {
+        //make sure we don't add any of the AI more than once
         if (AIList.ContainsKey(data.id))
             return;
 
+        //create struct for each ai
         AI ai = new AI();
         ai.id = data.id;
         ai.pos1 = new Vector3(data.xPos1, data.yPos1, data.zPos1);
         ai.pos2 = new Vector3(data.xPos2, data.yPos2, data.zPos2);
         ai.current = ai.pos2;
 
+        //add it to the dictionary
         AIList.Add(data.id, ai);
     }
 
+    //if theres a change in rotation
     private void OnRotationChange(int cnnID, NetworkStructs.RotationData data)
     {
         //NetworkStructs.DataPacket packet = new NetworkStructs.DataPacket(NetworkStructs.MessageTypes.CNN, NetworkStructs.getBytes(data));
-
+        
+        //send it to all players except the original sender of this message
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(data)), unreliableChannel, clients, cnnID);
     }
 
+    //if theres a change in position
     private void OnMovement(int cnnID, NetworkStructs.PositionVelocityData data)
     {
+        //send it to all players except the original sender of this message
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVE, NetworkStructs.getBytes(data)), unreliableChannel, clients, cnnID);
     }
 
@@ -294,46 +312,33 @@ public class Server : MonoBehaviour
     //Send to list
     private void Send(byte[] msg, int channelID, List<ServerClient> c)
     {
-        //Debug.Log("Sending : " + message);
-        //serverConsole.AddToConsole("Sending : " + message);  
-
-        //serverConsole.AddToConsole("to : ");
-
-        //byte[] msg = Encoding.Unicode.GetBytes(message);
         foreach (ServerClient sc in c)
         {
             NetworkTransport.Send(hostId, sc.connectionID, channelID, msg, msg.Length, out error);
-            //serverConsole.AddToConsole(sc.playerName);
         }
     }   
     
     //Send to all players
     private void Send(byte[] msg, int channelID)
     {
-        //Debug.Log("Sending : " + message);
-        //serverConsole.AddToConsole("Sending : " + message);
-
-        //message = "MESSAGE|" + message;
-
-        //serverConsole.AddToConsole("to all players");
-
-        //byte[] msg = Encoding.Unicode.GetBytes(message);
         foreach (ServerClient sc in clients)
         {
             NetworkTransport.Send(hostId, sc.connectionID, channelID, msg, msg.Length, out error);
         }
     }
 
+    //handles the admin commands
     private void adminCommands(string msg, int cnnID)
     {
         if (msg.Contains("/setjump"))
         {
-            //actually set the jump and send a response back to the specific player (or all players?)
+            //actually set the jump and output the change to the server log
             string number = msg.Substring(8);
             NetworkStructs.StringData data = new NetworkStructs.StringData("Setting player jump height to: " + number);
             serverConsole.AddToConsole("Setting player jump height to: " + number);
             Send(NetworkStructs.getBytes(data), reliableChannel, cnnID);
 
+            //adds a number to the front of the message to function as a tag rather than setting up a whole new message type
             string messageToSend = "1";
             messageToSend += number;
             data = new NetworkStructs.StringData(messageToSend);
@@ -341,12 +346,13 @@ public class Server : MonoBehaviour
         }
         else if (msg.Contains("/setspeed"))
         {
-            //actually change the player speed and send a response back to the specific player (or all players?)
+            //actually change the player speed and output the change to the server log
             string number = msg.Substring(9);
             NetworkStructs.StringData data = new NetworkStructs.StringData("Setting player move speed to: " + number);
             serverConsole.AddToConsole("Setting player move speed to: " + number);
             Send(NetworkStructs.getBytes(data), reliableChannel, cnnID);
 
+            //adds a number to the front of the message to function as a tag rather than setting up a whole new message type
             string messageToSend = "2";
             messageToSend += number;
             data = new NetworkStructs.StringData(messageToSend);
@@ -354,7 +360,7 @@ public class Server : MonoBehaviour
         }
         else
         {
-            //send message back to specific player saying that the specified command doesn't exist
+            //send message to the server logs that the command doesn't exist, along with what the passed in command was
             NetworkStructs.StringData data = new NetworkStructs.StringData("Command: " + msg + " :Doesn't exist!");
             serverConsole.AddToConsole("Command: " + msg + " :Doesn't exist!");
 

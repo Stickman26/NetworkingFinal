@@ -42,9 +42,10 @@ public class Client : MonoBehaviour
     public GameObject textObject;
     public GameObject chatBox;
 
+    //connect to server function
     public void Connect()
     {
-
+        //make sure the player has entered a username
         string pName = GameObject.Find("UsernameField").GetComponent<TMP_InputField>().text;
         if (pName == "")
         {
@@ -54,6 +55,7 @@ public class Client : MonoBehaviour
 
         playerName = pName;
 
+        //actually connect to the server
         NetworkTransport.Init();
         ConnectionConfig cc = new ConnectionConfig();
 
@@ -73,6 +75,7 @@ public class Client : MonoBehaviour
 
     private void Update()
     {
+        //make sure the player is connected to the server and if they are reveal the chatbox
         if (!isConnected)
         {
             return;
@@ -82,6 +85,7 @@ public class Client : MonoBehaviour
             chatBox.SetActive(true);
         }
 
+        //message event handlers
         int recHostId;
         int connectionId;
         int channelId;
@@ -175,6 +179,7 @@ public class Client : MonoBehaviour
 
     }
 
+    //when the server pings the player for their name
     private void OnAskName(NetworkStructs.NameRequestData data)
     {
         //set this clients ID
@@ -198,6 +203,7 @@ public class Client : MonoBehaviour
         }
     }
 
+    //spawn the players in (both local and non-local players)
     private void SpawnPlayer(string playerName, int cnnId)
     {
         GameObject go = Instantiate(playerPrefab) as GameObject;
@@ -242,6 +248,7 @@ public class Client : MonoBehaviour
         players.Add(cnnId, p);
     }
 
+    //if a player disconnects we remove them from the player list and delete their in-game avatar
     private void PlayerDisconnected(int cnnId)
     {
         Destroy(players[cnnId].avatar);
@@ -250,6 +257,7 @@ public class Client : MonoBehaviour
         //CallAIs();
     }
 
+    //call to setup the AIs by assigning their IDs
     private void SetupAIs()
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
@@ -271,6 +279,7 @@ public class Client : MonoBehaviour
     }
     */
 
+    //if we detect player movement from anyone who isn't the local player
     private void MovementDetected(NetworkStructs.PositionVelocityData data)
     {
         if(data.id != ourClientId && players[data.id] != null)
@@ -283,6 +292,7 @@ public class Client : MonoBehaviour
         }
     }
 
+    //if we detect player rotation from anyone who isn't the local player
     private void RotationgDetected(NetworkStructs.RotationData data)
     {
         if (data.id != ourClientId && players[data.id] != null)
@@ -294,6 +304,7 @@ public class Client : MonoBehaviour
         }
     }
 
+    //send the local player's rotation
     public void SendRotation(float xRot, float yRot)
     {
         NetworkStructs.RotationData msg = new NetworkStructs.RotationData(ourClientId, xRot, yRot);
@@ -301,6 +312,7 @@ public class Client : MonoBehaviour
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.ROT, NetworkStructs.getBytes(msg)), unreliableChannel);
     }
 
+    //send the local player's movement
     public void SendMovement(Vector3 pos, Vector3 vel)
     {
         NetworkStructs.PositionVelocityData msg = new NetworkStructs.PositionVelocityData(ourClientId, pos, vel);
@@ -308,6 +320,7 @@ public class Client : MonoBehaviour
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVE, NetworkStructs.getBytes(msg)), unreliableChannel);
     }
 
+    //setup the AI that are running on the local machine
     public void SetupAI(int id, Vector3 pos1, Vector3 pos2)
     {
         NetworkStructs.AIInitialMoveData msg = new NetworkStructs.AIInitialMoveData(id, pos1, pos2);
@@ -325,6 +338,7 @@ public class Client : MonoBehaviour
     }
     */
 
+    //if AI movement is detected that isn't local
     private void AIMoveDetected(NetworkStructs.AIMoveData data)
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
@@ -338,6 +352,7 @@ public class Client : MonoBehaviour
         }
     }
 
+    //send chat messages and admin commands
     public void sendMessage(string msg, int channelID)
     {
         if (msg.StartsWith("/"))
@@ -354,6 +369,7 @@ public class Client : MonoBehaviour
         }
     }
 
+    //processes incoming messages
     public void recieveMessage(NetworkStructs.StringData data)
     {
 
@@ -366,6 +382,7 @@ public class Client : MonoBehaviour
         chatPanel.GetComponent<TextMeshProUGUI>().text += data.str;
     }
 
+    //processes outgoing messages
     private void Send(byte[] msg, int channelID)
     {
         //Debug.Log("Sending : " + message);
@@ -374,6 +391,7 @@ public class Client : MonoBehaviour
         NetworkTransport.Send(hostId, connectionId, channelID, msg, msg.Length, out error);
     }
 
+    //handles any incoming admin commands
     private void adminCommands(string msg, int cnnID)
     {
         if (msg.StartsWith("1"))
