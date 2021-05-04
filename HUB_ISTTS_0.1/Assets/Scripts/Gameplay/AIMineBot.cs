@@ -4,30 +4,60 @@ using UnityEngine;
 
 public class AIMineBot : MonoBehaviour
 {
+    private int clientId;
+    private Client netClient;
     public int id;
-    public bool isControlled = true;
+    public bool isControlled = false;
 
     [SerializeField]
     float distance = 5f;
 
     private Vector3 pos1;
     private Vector3 pos2;
-    private bool switchBack = false;
+    //private bool switchBack = false;
+
+    private Vector3 PosTo;
+
+    //Timing
+    //private float sendDelay = 0.1f;
+    //private float lastSent;
 
     // Start is called before the first frame update
     void Start()
     {
+        netClient = GameObject.Find("Networking").GetComponent<Client>();
+        clientId = netClient.ourClientId;
+
         pos2 = transform.position;
+        PosTo = pos2;
         pos1 = transform.position + (transform.forward * distance);
     }
+
+    public void SendAIInitalData()
+    {
+        netClient.SetupAI(id, pos1, pos2);
+    }
+
+    //Depricated Function
+    /*
+    public void CheckIsControlled()
+    {
+        Debug.Log(id % netClient.players.Count);
+        isControlled = (clientId == (id % netClient.players.Count));
+    }
+    */
 
     // Update is called once per frame
     void Update()
     {
-        if (isControlled)
-            Move();
+        //if (isControlled)
+            //Move();
+        //else
+        transform.position = Vector3.Lerp(transform.position, PosTo, 0.9f);
     }
 
+    //Depricated Function
+    /*
     private void Move()
     {
         if (!switchBack)
@@ -47,9 +77,20 @@ public class AIMineBot : MonoBehaviour
                 switchBack = false;
             }
         }
-    }
 
-    //Lerp(pos1, transform.position, 0.2f);
+        if (sendDelay <= lastSent && netClient.isConnected)
+        {
+            lastSent = 0;
+            netClient.AIMove(id, gameObject.transform.position);
+        }
+        else
+            lastSent += Time.deltaTime;
+    }*/
+
+    public void RecieveMove(Vector3 pos)
+    {
+        PosTo = pos;
+    }
 
     public void KillButton()
     {

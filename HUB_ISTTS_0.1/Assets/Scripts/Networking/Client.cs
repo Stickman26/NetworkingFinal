@@ -28,7 +28,7 @@ public class Client : MonoBehaviour
     private int connectionId;
 
     private float connectionTime;
-    private bool isConnected = false;
+    public bool isConnected = false;
     private bool isStarted = false;
     private byte error;
 
@@ -112,6 +112,8 @@ public class Client : MonoBehaviour
                             {
                                 NetworkStructs.NameRequestData data = NetworkStructs.fromBytes<NetworkStructs.NameRequestData>(packet);
                                 SpawnPlayer(data.str, data.id);
+                                //CallAIs();
+                                SetupAIs();
                             }
                             break;
 
@@ -133,6 +135,13 @@ public class Client : MonoBehaviour
                             {
                                 NetworkStructs.RotationData data = NetworkStructs.fromBytes<NetworkStructs.RotationData>(packet);
                                 RotationgDetected(data);
+                            }
+                            break;
+
+                        case NetworkStructs.MessageTypes.MOVEAI:
+                            {
+                                NetworkStructs.AIMoveData data = NetworkStructs.fromBytes<NetworkStructs.AIMoveData>(packet);
+                                AIMoveDetected(data);
                             }
                             break;
 
@@ -237,7 +246,30 @@ public class Client : MonoBehaviour
     {
         Destroy(players[cnnId].avatar);
         players.Remove(cnnId);
+
+        //CallAIs();
     }
+
+    private void SetupAIs()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (GameObject enemy in enemies)
+        {
+            enemy.GetComponent<AIMineBot>().SendAIInitalData();
+        }
+    }
+
+    //Depricated Function
+    /*
+    private void CallAIs()
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (GameObject enemy in enemies)
+        {
+            enemy.GetComponent<AIMineBot>().CheckIsControlled();
+        }
+    }
+    */
 
     private void MovementDetected(NetworkStructs.PositionVelocityData data)
     {
@@ -274,6 +306,36 @@ public class Client : MonoBehaviour
         NetworkStructs.PositionVelocityData msg = new NetworkStructs.PositionVelocityData(ourClientId, pos, vel);
 
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVE, NetworkStructs.getBytes(msg)), unreliableChannel);
+    }
+
+    public void SetupAI(int id, Vector3 pos1, Vector3 pos2)
+    {
+        NetworkStructs.AIInitialMoveData msg = new NetworkStructs.AIInitialMoveData(id, pos1, pos2);
+
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.SETUPAI, NetworkStructs.getBytes(msg)), reliableChannel);
+    }
+
+    //Depricated Function
+    /*
+    public void AIMove(int id, Vector3 pos)
+    {
+        NetworkStructs.AIMoveData msg = new NetworkStructs.AIMoveData(id, pos);
+
+        Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVEAI, NetworkStructs.getBytes(msg)), unreliableChannel);
+    }
+    */
+
+    private void AIMoveDetected(NetworkStructs.AIMoveData data)
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        foreach (GameObject enemy in enemies)
+        {
+            if (enemy.GetComponent<AIMineBot>().id == data.id)
+            {
+                enemy.GetComponent<AIMineBot>().RecieveMove(new Vector3(data.xPos, data.yPos, data.zPos));
+                return;
+            }
+        }
     }
 
     public void sendMessage(string msg, int channelID)

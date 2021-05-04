@@ -8,10 +8,10 @@ public class EndGame : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Enter");
+        //Debug.Log("Enter");
         if (other.gameObject.GetComponentInParent<PlayerMovement>())
         {
-            Debug.Log("Hit");
+            //Debug.Log("Hit");
             other.gameObject.GetComponentInParent<PlayerMovement>().SetPlayerPosition(spawnPoint.position, spawnPoint.rotation);
         }
     }

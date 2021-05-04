@@ -19,6 +19,8 @@ public class NetworkStructs
         ROT,
         MOVE,
         ADMIN,
+        MOVEAI,
+        SETUPAI,
 
         MESSAGE_LIST_END
     }
@@ -101,6 +103,50 @@ public class NetworkStructs
             xVel = vel.x;
             yVel = vel.y;
             zVel = vel.z;
+        }
+    }
+
+    public struct AIMoveData
+    {
+        public int id;
+
+        public float xPos;
+        public float yPos;
+        public float zPos;
+
+        public AIMoveData(int id, Vector3 pos)
+        {
+            this.id = id;
+
+            xPos = pos.x;
+            yPos = pos.y;
+            zPos = pos.z;
+        }
+    }
+
+    public struct AIInitialMoveData
+    {
+        public int id;
+
+        public float xPos1;
+        public float yPos1;
+        public float zPos1;
+
+        public float xPos2;
+        public float yPos2;
+        public float zPos2;
+
+        public AIInitialMoveData(int id, Vector3 pos1, Vector3 pos2)
+        {
+            this.id = id;
+
+            xPos1 = pos1.x;
+            yPos1 = pos1.y;
+            zPos1 = pos1.z;
+
+            xPos2 = pos2.x;
+            yPos2 = pos2.y;
+            zPos2 = pos2.z;
         }
     }
 

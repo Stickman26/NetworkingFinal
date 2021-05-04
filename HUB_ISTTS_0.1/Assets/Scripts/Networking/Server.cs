@@ -12,6 +12,17 @@ public class ServerClient
     public string playerName;
 }
 
+public class AI
+{
+    public int id;
+
+    public bool switchBack = false;
+
+    public Vector3 current;
+    public Vector3 pos1;
+    public Vector3 pos2;
+}
+
 public class Server : MonoBehaviour
 {
     private const int MAX_CONNECTIONS = 4;
@@ -27,8 +38,13 @@ public class Server : MonoBehaviour
     private byte error;
 
     private List<ServerClient> clients = new List<ServerClient>();
+    private Dictionary<int, AI> AIList = new Dictionary<int, AI>();
 
     private ServerInterface serverConsole;
+
+    //Timing
+    private float sendDelay = 0.2f;
+    private float lastSent;
 
     private void Start()
     {
@@ -109,6 +125,13 @@ public class Server : MonoBehaviour
                             }
                             break;
 
+                        case NetworkStructs.MessageTypes.SETUPAI:
+                            {
+                                NetworkStructs.AIInitialMoveData data = NetworkStructs.fromBytes<NetworkStructs.AIInitialMoveData>(packet);
+                                OnAISetup(data);
+                            }
+                            break;
+
                         case NetworkStructs.MessageTypes.MESSAGE:
                             Send(recBuffer, reliableChannel);
                             break;
@@ -143,6 +166,41 @@ public class Server : MonoBehaviour
                 break;
         }
 
+        AIPositionUpdate();
+    }
+
+    private void AIPositionUpdate()
+    {
+        foreach (AI a in AIList.Values)
+        {
+            if (!a.switchBack)
+            {
+                a.current = Vector3.MoveTowards(a.current, a.pos1, 0.01f);
+                if (Vector3.Magnitude(a.current - a.pos1) < 0.1f)
+                {
+                    a.switchBack = true;
+                }
+            }
+            else
+            {
+                a.current = Vector3.MoveTowards(a.current, a.pos2, 0.01f);
+                if (Vector3.Magnitude(a.current - a.pos2) < 0.1f)
+                {
+                    a.switchBack = false;
+                }
+            }
+
+            if (sendDelay <= lastSent && clients.Count != 0)
+            {
+                lastSent = 0;
+
+                NetworkStructs.AIMoveData msg = new NetworkStructs.AIMoveData(a.id, a.current);
+
+                Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.MOVEAI, NetworkStructs.getBytes(msg)), unreliableChannel);
+            }
+            else
+                lastSent += Time.deltaTime;
+        }
     }
 
     private void OnConnection(int cnnId)
@@ -185,6 +243,20 @@ public class Server : MonoBehaviour
 
         //Tell everyone about new player connection
         Send(NetworkStructs.AddTag(NetworkStructs.MessageTypes.CNN, NetworkStructs.getBytes(msg)), reliableChannel, clients);
+    }
+
+    private void OnAISetup(NetworkStructs.AIInitialMoveData data)
+    {
+        if (AIList.ContainsKey(data.id))
+            return;
+
+        AI ai = new AI();
+        ai.id = data.id;
+        ai.pos1 = new Vector3(data.xPos1, data.yPos1, data.zPos1);
+        ai.pos2 = new Vector3(data.xPos2, data.yPos2, data.zPos2);
+        ai.current = ai.pos2;
+
+        AIList.Add(data.id, ai);
     }
 
     private void OnRotationChange(int cnnID, NetworkStructs.RotationData data)
